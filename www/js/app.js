@@ -218,6 +218,12 @@ $$(document).on('click', '#get-instruction', function (e) {
     });
 });
 
+// Get login form with popup
+$$(document).on('click', '#get-login', function (e) {
+    mainView.router.loadContent($$('#loginPage').html());
+    bankaKZ.closeModal('.modal');
+});
+
 //Get page Website Rights
 $$(document).on('click', '#rules', function (e) {
     var url = "https://www.xn--90aodoeldy.kz/mobile_api/pageInit/rules.php";
@@ -495,8 +501,7 @@ bankaKZ.onPageInit('booking-page', function (page) {
         var date = $$(this).val();
 
         if(dailyBooked == "Y") {
-            var tempData = date.split('.');
-            $$('#calendar-service-to').val(parseFloat(tempData[0])+1+'.'+tempData[1]+'.'+tempData[2]);
+            $$('#calendar-service-to').val(addOneDay(date));
         } else {
             $$('#calendar-service-to').val(date);
         }
@@ -532,6 +537,26 @@ bankaKZ.onPageInit('personal-userpage', function (page) {
 function initApp() {
     initRangeSlider();
     initCalendarPicker();
+}
+
+// Add +1 day in booking form
+function addOneDay(date) {
+    var tempData = date.split('.');
+    var month = parseInt(tempData[1]-1);
+    var date_from = new Date(tempData[2], month, tempData[0]);
+    var unix_from = date_from.getTime()/1000;
+
+    unix_from = unix_from+24*60*60;
+
+    var date_to_tmp = new Date(date_from.setTime(unix_from*1000));
+
+    var dd = date_to_tmp.getDate();
+    if (dd < 10) dd = '0' + dd;
+
+    var mm = date_to_tmp.getMonth()+1;
+    if (mm < 10) mm = '0' + mm;
+
+    return  dd + '.' + mm + '.' + date_to_tmp.getFullYear();
 }
 
 // Get filter data with JSON
@@ -1033,7 +1058,11 @@ function showPopupRegistration() {
                 setTimeout(function () {
                     bankaKZ.modal({
                         title: 'Пройдите регистрацию!',
-                        text: 'Для полноценной работы на сайте и в приложении, необходимо пройти <a href="#" id="get-instruction">процедуру регистрации</a> и авторизоваться.'
+                        text: 'Для полноценной работы на сайте и в приложении, необходимо пройти <a href="#" id="get-instruction">процедуру регистрации</a> и <a href="#" id="get-login">авторизоваться</a>.',
+                        buttons: [{
+                            text: 'Закрыть',
+                            bold: true
+                        }]                    
                     });
                 }, 3000);
             }
