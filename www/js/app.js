@@ -15,26 +15,21 @@ var bankaKZ = new Framework7({
 var $$ = Dom7;
 var storage = window.localStorage;
 
+// Enable/Disable development mode
+const devMode = false;
+
 // Handle Cordova Device Ready Event
 $$(document).on('deviceready', function() {
-    getPullId();
     getFilters();
+    getPullId();
     getPushNotify();
-    // showPopupRegistration();
+    //showPopupRegistration();
     document.addEventListener('backbutton', onBackKeyDown, false);
 });
 
 // Add view
 var mainView = bankaKZ.addView('.view-main'),
     sidebarView = bankaKZ.addView('.view-sidebar');
-
-// Refresh Main Page
-$$(document).on('refresh', '.pull-to-refresh-content', function(e) {
-    setTimeout(function() {
-        mainView.router.refreshPage();
-        bankaKZ.pullToRefreshDone();
-    }, 2000);
-});
 
 // Back to main
 $$(document).on('click', '.backtomain', function(e) {
@@ -63,6 +58,7 @@ $$(document).on('click', '.getitempage', function(e) {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     });
 })
@@ -123,6 +119,7 @@ $$(document).on('click', '.send-code', function(e) {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     })
 });
@@ -169,6 +166,44 @@ $$(document).on('click', '#btnSearch', function(e) {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
+        }
+    });
+});
+
+//Get user halls
+$$(document).on('click', '#my-halls', function(e) {
+    bankaKZ.closePanel();
+    var url = "https://www.xn--90aodoeldy.kz/mobile_api/pageInit/owner_list.php";
+
+    $$.ajax({
+        dataType: 'json',
+        url: url,
+        beforeSend: function(xhr) {
+            bankaKZ.showIndicator();
+        },
+        success: function(resp) {
+            if (resp.status == 'ERROR') {
+                bankaKZ.alert(resp.message);
+            } else {
+                if (resp.products == null) {
+                    var ctx = { 'empty': true };
+                } else {
+                    var ctx = resp.products;
+                    storage.setItem('products', JSON.stringify(ctx));
+                }
+                mainView.router.load({
+                    template: Template7.templates.listTemplate,
+                    context: ctx
+                });
+            }
+        },
+        complete: function(resp) {
+            bankaKZ.hideIndicator();
+        },
+        error: function(xhr) {
+            console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     });
 });
@@ -202,6 +237,7 @@ $$(document).on('click', '#about', function(e) {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     });
 });
@@ -228,6 +264,7 @@ $$(document).on('click', '#help', function(e) {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     });
 });
@@ -253,6 +290,7 @@ $$(document).on('click', '#howadd', function(e) {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     });
 });
@@ -278,6 +316,7 @@ $$(document).on('click', '#get-instruction', function(e) {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     });
 });
@@ -308,6 +347,7 @@ $$(document).on('click', '#rules', function(e) {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     });
 });
@@ -349,6 +389,7 @@ $$(document).on('click', '.sbt-status', function(e) {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     })
 });
@@ -382,6 +423,7 @@ $$(document).on('click', '.sbt-booking', function(e) {
             },
             error: function(xhr) {
                 console.log("Error on ajax call " + xhr);
+                if(devMode) alert(JSON.parse(xhr));
             }
         });
     }
@@ -391,7 +433,7 @@ $$(document).on('click', '.sbt-booking', function(e) {
 bankaKZ.onPageInit('index', function(page) {
     initApp();
 
-    var allServices = $$('#service option');
+    var service = $$('#service option');
     var Services = [];
 
     $$.each(service, function(i, item) {
@@ -496,6 +538,7 @@ bankaKZ.onPageInit('registration-page', function(page) {
                 },
                 error: function(xhr) {
                     console.log("Error on ajax call " + xhr);
+                    if(devMode) alert(JSON.parse(xhr));
                 }
             });
         }
@@ -527,6 +570,7 @@ bankaKZ.onPageInit('login-page', function(page) {
             },
             error: function(xhr) {
                 console.log("Error on ajax call " + xhr);
+                if(devMode) alert(JSON.parse(xhr));
             }
         });
 
@@ -545,8 +589,8 @@ bankaKZ.onPageInit('booking-page', function(page) {
     var productId = $$('#productid').val();
     var serviceWrapperId = $$('.subradiowrapper li:first-child input').val();
     var dailyBooked = $$('.subradiowrapper li:first-child #subproductdaily-' + serviceWrapperId).val();
-
-    // Сheck empty sub service |
+    
+    // Сheck empty sub service 
     if ($$(".subproductservice ul li").length > 0) {
         $$('#service-' + serviceWrapperId).show();
     } else {
@@ -592,12 +636,22 @@ bankaKZ.onPageInit('booking-page', function(page) {
 
     $$(document).on('change', '#calendar-service-from', function(e) {
         var date = $$(this).val();
+        var timesAlready = JSON.parse($$('.subradiowrapper li input:checked').parent().find('.timesalready').val());
+
+        disableTimesAlredy(timesAlready, date);
 
         if (dailyBooked == "Y") {
             $$('#calendar-service-to').val(addOneDay(date));
         } else {
             $$('#calendar-service-to').val(date);
-        }
+        }        
+    });
+
+    $$(document).on('change', '#calendar-service-to', function(e) { 
+        var date = $$(this).val();
+        var timesAlready = JSON.parse($$('.subradiowrapper li input:checked').parent().find('.timesalready').val());
+        
+        disableTimesAlredy(timesAlready, date);
     });
 
     $$(document).on('change', '#time-to', function(e) {
@@ -606,6 +660,7 @@ bankaKZ.onPageInit('booking-page', function(page) {
 
     $$(document).on('change', '#time-from', function(e) {
         var time = parseInt($$(this).val()) + 1;
+
         $$("#time-to option[value='" + time + ":00']").prop('selected', 'true');
         $$("#time-to").siblings('.item-content').find('.item-after').html(time + ':00');
         calcBooking();
@@ -692,6 +747,7 @@ function getFilters() {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     });
 }
@@ -717,6 +773,7 @@ function getRegisterData() {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     });
 }
@@ -747,6 +804,7 @@ function sendPassword() {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     })
 }
@@ -777,6 +835,7 @@ function sendReview() {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     })
 }
@@ -802,6 +861,7 @@ function getSidebar() {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     });
 }
@@ -827,6 +887,7 @@ function getPersonalData() {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     });
 }
@@ -881,6 +942,7 @@ function initCalendarPicker() {
 
     var dataSearch = bankaKZ.calendar({
         input: '#data-search',
+        value: [new Date()],
         dateFormat: 'dd.mm.yyyy',
         monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
         dayNamesShort: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
@@ -920,7 +982,6 @@ function initCalendarRangeServicePicker(productId, subproductId) {
         }
     });
 
-
     $$.each(disDate, function(i, arDate) {
         disableDates.push(new Date(arDate.y, arDate.m - 1, arDate.d));
     });
@@ -939,6 +1000,7 @@ function initCalendarRangeServicePicker(productId, subproductId) {
         disabled: disableDates,
         toolbarCloseText: 'Готово'
     });
+
     var dataTo = bankaKZ.calendar({
         input: '#calendar-service-to',
         dateFormat: 'dd.mm.yyyy',
@@ -946,10 +1008,39 @@ function initCalendarRangeServicePicker(productId, subproductId) {
         dayNamesShort: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
         closeOnSelect: true,
         headerPlaceholder: "Дата до",
-        minDate: today.setDate(today.getDate() - 1),
+        minDate: today.setDate(today.getDate()),
         events: disableDates,
         disabled: disableDates,
         toolbarCloseText: 'Готово'
+    });
+}
+
+// Booking form disable already times
+function disableTimesAlredy(timesData, date) {
+    $$.each(timesData, function(i, item) {        
+        if(date == item.date) {
+            $$("#time-from option").each(function() {
+                if($$(this).val() == item.h) {
+                    $$(this).prop("disabled", true);
+                } 
+            });
+            $$("#time-to option").each(function() {
+                if($$(this).val() == item.h) {
+                    $$(this).prop("disabled", true);
+                } 
+            });
+        } else {
+            $$("#time-from option").each(function() {
+                if($$(this).val() == item.h) {
+                    $$(this).prop("disabled", false);
+                } 
+            });
+            $$("#time-to option").each(function() {
+                if($$(this).val() == item.h) {
+                    $$(this).prop("disabled", false);
+                } 
+            });
+        }
     });
 }
 
@@ -1124,6 +1215,7 @@ function onBackKeyDown() {
             navigator.app.exitApp();
         }
     } else {
+        getFilters();
         mainView.router.back();
     }
 }
@@ -1151,6 +1243,7 @@ function getPushId() {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     });
 }
@@ -1169,6 +1262,7 @@ function getPullId() {
             },
             error: function(xhr) {
                 console.log("Error on ajax call " + xhr);
+                if(devMode) alert(JSON.parse(xhr));
             }
         });
     }
@@ -1187,7 +1281,8 @@ function getPullId() {
                 console.log("Success ajax call");
             },
             error: function(xhr) {
-                console.log("Error on ajax call " + xhr);
+                console.log("Error on ajax call " + xhr)
+                if(devMode) alert(JSON.parse(xhr));
             }
         });
     });
@@ -1221,6 +1316,7 @@ function showPopupRegistration() {
         },
         error: function(xhr) {
             console.log("Error on ajax call " + xhr);
+            if(devMode) alert(JSON.parse(xhr));
         }
     });
 }

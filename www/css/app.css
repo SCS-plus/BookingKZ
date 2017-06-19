@@ -1,3 +1,5 @@
+@import "material-icons.css";
+
 .logo{
     vertical-align: sub;
 }
@@ -34,7 +36,15 @@
     padding-left: 5px;
 }
 
-/*list-product*/
+.card .item-content {
+    padding-left: 0px;
+}
+
+.card .item-content .item-inner:after {
+    display: none;
+}
+
+    /*list-product*/
 .not-found {
     text-align: center;
     font-size: 18px;
@@ -87,6 +97,7 @@
 
 .product-page .card .card-header{
     font-size: 18px;
+    width: 100%;
 }
 
 .product-page .card .card-content-inner .map {
@@ -314,3 +325,20 @@
 .list-block .item-content .item-inner .right::-moz-placeholder          {color:#757575;}
 .list-block .item-content .item-inner .right:-moz-placeholder           {color:#757575;}
 .list-block .item-content .item-inner .right:-ms-input-placeholder      {color:#757575;}
+
+.smart-select-popup ul li.disabled .item-title {
+    color: #f00;
+}
+
+#register-form .smart-select .item-inner {
+    padding-top: 14px;
+}
+
+#register-form .smart-select .item-title { 
+    font-size: 12px;
+    display: inline-block;
+}
+
+#register-form .smart-select .item-after { 
+    float: right;
+}
